@@ -1,0 +1,24 @@
+# Ignora le cartelle di cache di Python
+__pycache__/
+*.pyc
+
+# Ignora le cartelle di ambienti virtuali
+venv/
+env/
+.venv/
+.env
+
+# Ignora la cartella di configurazione di Streamlit (può contenere secrets)
+.streamlit/
+
+# Ignora i file di database
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignora le cartelle specificate dall'utente
+.old/
+
+# Ignora file specifici del sistema operativo
+.DS_Store
+Thumbs.db
