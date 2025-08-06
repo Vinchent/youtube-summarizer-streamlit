@@ -1,4 +1,4 @@
-# File: app.py (Versione con Database e Cronologia Persistente)
+# File: app.py (Versione con Database e Cronologia Persistente + Eliminazione Singolo Record)
 # Prerequisiti: pip install streamlit google-generativeai youtube-transcript-api pytube
 
 import streamlit as st
@@ -15,12 +15,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Stile CSS Personalizzato (Versione Originale) ---
+# --- Stile CSS Personalizzato (Versione Corretta e Migliorata) ---
 st.markdown("""
 <style>
+    /* Stile generale dell'app */
     .stApp {
         background-color: #F0F2F6;
     }
+
+    /* Stile per il pulsante principale "Genera Riassunto" */
     .stButton>button {
         color: #FFFFFF;
         background-color: #FF4B4B;
@@ -30,12 +33,31 @@ st.markdown("""
         font-weight: bold;
         width: 100%;
     }
+
     .stButton>button:hover {
         background-color: #E03C3C;
     }
+
+    /* Stile per i pulsanti della cronologia nella sidebar */
+    [data-testid="stSidebar"] .stButton>button {
+        /* Allinea il testo a sinistra */
+        text-align: left;
+        /* Giustifica il contenuto (testo) all'inizio del contenitore flex */
+        justify-content: flex-start;
+        /* Riduci la dimensione del font */
+        font-size: 10px;
+        /* Rimuovi il grassetto per un look più pulito (opzionale) */
+        font-weight: normal;
+        /* Aggiungi un po' di padding a sinistra per l'allineamento */
+        padding-left: 10px; 
+    }
+
+    /* Stile per il campo di input del testo */
     .stTextInput>div>div>input {
         border-radius: 8px;
     }
+
+    /* Assicura che gli elementi si espandano correttamente */
     .st-emotion-cache-19rxjzo.ef3psqc12 {
         width: 100%;
     }
@@ -103,6 +125,23 @@ def process_summarization(api_key, video_link):
 def select_video_from_history(video_data):
     st.session_state.selected_video = video_data
 
+def delete_single_video(video_id):
+    """Elimina un singolo video dalla cronologia"""
+    # Elimina dal database
+    success = db.delete_single_record(video_id)
+    
+    if success:
+        # Rimuovi dalla sessione locale
+        st.session_state.history = [v for v in st.session_state.history if v['id'] != video_id]
+        
+        # Se il video eliminato era quello selezionato, seleziona il primo disponibile o None
+        if st.session_state.selected_video and st.session_state.selected_video['id'] == video_id:
+            st.session_state.selected_video = st.session_state.history[0] if st.session_state.history else None
+        
+        st.success("Riassunto eliminato con successo!", icon="✅")
+    else:
+        st.error("Errore durante l'eliminazione del riassunto.", icon="❌")
+
 def clear_history():
     db.clear_history_db()
     st.session_state.history = []
@@ -117,10 +156,32 @@ with st.sidebar:
 
     if st.session_state.history:
         for video in st.session_state.history:
-            st.button(
-                video['title'], key=video['id'],
-                on_click=select_video_from_history, args=(video,)
-            )
+            # Crea due colonne per il pulsante del titolo e il pulsante elimina
+            col1, col2 = st.columns([4, 1])
+            
+            with col1:
+                # Tronchiamo il titolo se è troppo lungo per migliorare la UI
+                display_title = video['title'][:50] + "..." if len(video['title']) > 50 else video['title']
+                
+                if st.button(
+                    display_title, 
+                    key=f"select_{video['id']}",
+                    on_click=select_video_from_history, 
+                    args=(video,),
+                    help=video['title']  # Tooltip con il titolo completo
+                ):
+                    pass
+            
+            with col2:
+                if st.button(
+                    "✖", 
+                    key=f"delete_{video['id']}", 
+                    on_click=delete_single_video,
+                    args=(video['id'],),
+                    help="Elimina questo riassunto",
+                    type="secondary"
+                ):
+                    st.rerun()
         
         st.markdown("---")
         if st.button("Pulisci Cronologia", type="primary"):
@@ -131,7 +192,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.header("Come funziona")
-    st.markdown("1. **Inserisci un link**\n2. **Recupera titolo e trascrizione**\n3. **Genera il riassunto**\n4. **Salva nella cronologia**")
+    st.markdown("1. **Inserisci un link**\n2. **Recupera titolo e trascrizione**\n3. **Genera il riassunto**\n4. **Salva nella cronologia**\n5. **Usa ✖ per eliminare singoli riassunti**")
 
 st.title("✨ YouTube Video Summarizer")
 st.markdown("Incolla il link di un video di YouTube e ottieni un riassunto istantaneo generato da Gemini.")
