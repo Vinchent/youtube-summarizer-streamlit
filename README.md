@@ -4,7 +4,7 @@ A simple yet beautiful web application that transforms lengthy YouTube videos in
 
 ## Application Preview
 
-![App Screenshot](https://i.imgur.com/qRCmWDm.png)
+![App Screenshot](https://i.imgur.com/OYJO7V7.png)
 
 ## 🚀 Key Features
 
