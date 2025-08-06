@@ -4,11 +4,11 @@ A simple yet beautiful web application that transforms lengthy YouTube videos in
 
 ## Application Preview
 
-![App Screenshot](https://imgur.com/a/8RcmQgE)
+![App Screenshot](https://i.imgur.com/qRCmWDm.png)
 
 ## 🚀 Key Features
 
-- **AI-Powered Summarization**: Leverages Google's `gemini-2.5-flash-lite` model to generate accurate, high-quality video summaries
+- **AI-Powered Summarization**: Leverages Google's `gemini-2.5-flash-lite` model to generate accurate, high-quality video summaries (but you can change it)
 - **Intuitive Web Interface**: Clean and user-friendly interface built with Streamlit, ensuring accessibility for all users
 - **Persistent History**: All analyzed videos are stored in a local SQLite database, allowing you to review previous summaries anytime, even after application restarts
 - **Automated Content Extraction**: Automatically retrieves video transcripts and metadata directly from YouTube
@@ -37,8 +37,8 @@ Follow these steps to set up and run the project locally.
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
-cd YOUR_REPOSITORY_NAME
+git clone https://github.com/Vinchent/youtube-summarizer-streamlit.git
+cd youtube-summarizer-streamlit
 ```
 
 #### 2. Environment Setup
@@ -59,8 +59,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-*Note: Generate the `requirements.txt` file using `pip freeze > requirements.txt` to list all dependencies.*
-
 #### 3. API Configuration
 
 The application uses Streamlit's secrets management for secure API key handling:
@@ -73,8 +71,6 @@ The application uses Streamlit's secrets management for secure API key handling:
 # .streamlit/secrets.toml
 GEMINI_API_KEY = "your_api_key_here"
 ```
-
-**Security Note**: Ensure `.streamlit/secrets.toml` is included in your `.gitignore` file to prevent accidental exposure of sensitive credentials.
 
 ## 🚀 Running the Application
 
