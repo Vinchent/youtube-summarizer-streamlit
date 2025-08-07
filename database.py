@@ -9,16 +9,17 @@ DB_NAME = "history.db"
 def init_db():
     """
     Inizializza il database e crea la tabella 'history' se non esiste.
+    AGGIUNTO: Campo 'author' per il nome del canale.
     """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    # Creiamo la tabella. Usiamo TEXT per tutti i campi per semplicità.
-    # L'ID del video di YouTube sarà la nostra chiave primaria per evitare duplicati.
+    # Aggiungiamo la colonna 'author' alla tabella
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS history (
             id TEXT PRIMARY KEY,
             url TEXT NOT NULL,
             title TEXT NOT NULL,
+            author TEXT NOT NULL, 
             summary TEXT NOT NULL,
             transcript TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -31,17 +32,19 @@ def add_history(video_data: dict):
     """
     Aggiunge un nuovo record alla cronologia.
     Se un video con lo stesso ID esiste già, lo aggiorna (UPSERT).
+    AGGIUNTO: Inserimento del valore 'author'.
     """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    # Usiamo INSERT OR REPLACE per gestire i duplicati: se l'ID esiste, la riga viene sostituita.
+    # Usiamo INSERT OR REPLACE per gestire i duplicati. Aggiunto 'author'.
     cursor.execute("""
-        INSERT OR REPLACE INTO history (id, url, title, summary, transcript)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO history (id, url, title, author, summary, transcript)
+        VALUES (?, ?, ?, ?, ?, ?)
     """, (
         video_data['id'],
         video_data['url'],
         video_data['title'],
+        video_data['author'],
         video_data['summary'],
         video_data['transcript']
     ))
@@ -53,7 +56,6 @@ def get_history() -> list[dict]:
     Recupera tutti i record dalla cronologia, ordinati dal più recente.
     """
     conn = sqlite3.connect(DB_NAME)
-    # Restituisce le righe come dizionari per un facile utilizzo
     conn.row_factory = sqlite3.Row 
     cursor = conn.cursor()
     
@@ -61,7 +63,6 @@ def get_history() -> list[dict]:
     rows = cursor.fetchall()
     conn.close()
     
-    # Converte le righe del database in una lista di dizionari standard
     return [dict(row) for row in rows]
 
 def delete_single_record(video_id: str):
@@ -72,12 +73,10 @@ def delete_single_record(video_id: str):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Prima controlliamo se il record esiste
     cursor.execute("SELECT COUNT(*) FROM history WHERE id = ?", (video_id,))
     exists = cursor.fetchone()[0] > 0
     
     if exists:
-        # Eliminiamo il record
         cursor.execute("DELETE FROM history WHERE id = ?", (video_id,))
         conn.commit()
     
@@ -93,4 +92,3 @@ def clear_history_db():
     cursor.execute("DELETE FROM history")
     conn.commit()
     conn.close()
-

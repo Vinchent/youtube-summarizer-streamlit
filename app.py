@@ -77,6 +77,9 @@ if 'history_loaded' not in st.session_state:
 # --- Funzioni di Logica ---
 
 def process_summarization(api_key, video_link):
+    """
+    Funzione AGGIORNATA per gestire il campo 'author'.
+    """
     if not api_key:
         st.error("Chiave API di Gemini non trovata!", icon="🚨")
         return
@@ -92,7 +95,8 @@ def process_summarization(api_key, video_link):
             return
 
         with st.spinner("Recupero informazioni dal video... ⏳"):
-            transcript, title, error = summarizer.get_video_info(video_id)
+            # <<< MODIFICA 1: Catturiamo i 4 valori, incluso l'autore >>>
+            transcript, title, author, error = summarizer.get_video_info(video_id)
         if error:
             st.error(error, icon="❌")
             return
@@ -103,16 +107,20 @@ def process_summarization(api_key, video_link):
             st.error(error, icon="❌")
             return
         
+        # <<< MODIFICA 2: Includiamo l'autore nel dizionario da salvare >>>
         video_data = {
-            "id": video_id, "url": video_link, "title": title,
-            "summary": summary, "transcript": transcript
+            "id": video_id, 
+            "url": video_link, 
+            "title": title,
+            "author": author, # Campo autore aggiunto
+            "summary": summary, 
+            "transcript": transcript
         }
         
         # Salva nel database
         db.add_history(video_data)
         
         # Aggiorna lo stato della sessione locale
-        # Rimuovi eventuali duplicati prima di aggiungere
         st.session_state.history = [v for v in st.session_state.history if v['id'] != video_id]
         st.session_state.history.insert(0, video_data)
         st.session_state.selected_video = video_data
@@ -127,17 +135,12 @@ def select_video_from_history(video_data):
 
 def delete_single_video(video_id):
     """Elimina un singolo video dalla cronologia"""
-    # Elimina dal database
     success = db.delete_single_record(video_id)
     
     if success:
-        # Rimuovi dalla sessione locale
         st.session_state.history = [v for v in st.session_state.history if v['id'] != video_id]
-        
-        # Se il video eliminato era quello selezionato, seleziona il primo disponibile o None
         if st.session_state.selected_video and st.session_state.selected_video['id'] == video_id:
             st.session_state.selected_video = st.session_state.history[0] if st.session_state.history else None
-        
         st.success("Riassunto eliminato con successo!", icon="✅")
     else:
         st.error("Errore durante l'eliminazione del riassunto.", icon="❌")
@@ -156,22 +159,17 @@ with st.sidebar:
 
     if st.session_state.history:
         for video in st.session_state.history:
-            # Crea due colonne per il pulsante del titolo e il pulsante elimina
             col1, col2 = st.columns([4, 1])
-            
             with col1:
-                # Tronchiamo il titolo se è troppo lungo per migliorare la UI
                 display_title = video['title'][:50] + "..." if len(video['title']) > 50 else video['title']
-                
                 if st.button(
                     display_title, 
                     key=f"select_{video['id']}",
                     on_click=select_video_from_history, 
                     args=(video,),
-                    help=video['title']  # Tooltip con il titolo completo
+                    help=video['title']
                 ):
                     pass
-            
             with col2:
                 if st.button(
                     "✖", 
