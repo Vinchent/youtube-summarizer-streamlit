@@ -1,6 +1,6 @@
 # ✨ YouTube Video Summarizer with Gemini AI
 
-A simple yet beautiful web application that transforms lengthy YouTube videos into concise, readable summaries using the power of Google Gemini AI. Skip the time-consuming process of watching long videos and extract key insights in seconds.
+A versatile and powerful application that transforms lengthy YouTube videos into concise, readable summaries using Google's Gemini AI. This tool offers two distinct modes of operation: a user-friendly web interface for summarizing single videos and a powerful command-line script for batch-processing entire playlists.
 
 ## Application Preview
 
@@ -8,19 +8,44 @@ A simple yet beautiful web application that transforms lengthy YouTube videos in
 
 ## 🚀 Key Features
 
-- **AI-Powered Summarization**: Leverages Google's `gemini-2.5-flash-lite` model to generate accurate, high-quality video summaries (but you can change it)
-- **Intuitive Web Interface**: Clean and user-friendly interface built with Streamlit, ensuring accessibility for all users
-- **Persistent History**: All analyzed videos are stored in a local SQLite database, allowing you to review previous summaries anytime, even after application restarts
-- **Automated Content Extraction**: Automatically retrieves video transcripts and metadata directly from YouTube
-- **Streamlined Workflow**: Simply paste a YouTube URL and click to generate comprehensive summaries
+- **Dual Operation Modes**: Use the interactive Streamlit app for single-video summaries or the command-line script to bulk-process an entire playlist.
+- **AI-Powered Summarization**: Leverages Google's `gemini-2.5-flash-lite` model to generate accurate, high-quality summaries.
+- **Intuitive Web Interface**: A clean and user-friendly interface built with Streamlit ensures accessibility for all users.
+- **Persistent History**: All analyzed videos are stored in a local SQLite database, allowing you to review previous summaries anytime.
+- **Concurrent Batch Processing**: The playlist script processes multiple videos in parallel, significantly speeding up bulk operations.
+- **Automated Content Extraction**: Automatically retrieves video transcripts and metadata (title, channel author) directly from YouTube.
+
+## ⚙️ How It Works
+
+This application can be used in two ways:
+
+### 1. Interactive Web App (`app.py`)
+Run the Streamlit application to launch a web interface. Simply paste a single YouTube video URL and click "Genera Riassunto". The summary appears instantly and is automatically saved to the history. This is perfect for quick, on-demand analysis.
+
+### 2. Batch Processing from a Playlist (`populate_from_playlist.py`)
+Use the `populate_from_playlist.py` script to automatically fetch all videos from a specified YouTube playlist, generate a summary for each one, and save them directly into the database. This is ideal for pre-loading the application with a large amount of content.
 
 ## 🛠️ Technology Stack
 
 - **Programming Language**: Python 3.9+
 - **Web Framework**: Streamlit
-- **AI Model**: Google Gemini (gemini-2.5-flash-lite)
+- **AI Model**: Google Gemini (`gemini-2.5-flash-lite`)
 - **Database**: SQLite
-- **Core Dependencies**: `google-generativeai`, `youtube-transcript-api`, `yt_dlp`
+- **Core Dependencies**: `google-generativeai`, `youtube-transcript-api`, `yt_dlp`, `streamlit`
+
+## 🗄️ Database Schema
+
+The application uses a local SQLite database file (`history.db`) to store the summary history. The data is stored in a table named `history` with the following attributes:
+
+| Attribute    | Type      | Description                                              |
+|--------------|-----------|----------------------------------------------------------|
+| `id`         | `TEXT`    | The unique YouTube video ID (Primary Key).               |
+| `url`        | `TEXT`    | The full URL of the YouTube video.                       |
+| `title`      | `TEXT`    | The title of the video.                                  |
+| `author`     | `TEXT`    | The name of the YouTube channel/uploader.                |
+| `summary`    | `TEXT`    | The AI-generated summary.                                |
+| `transcript` | `TEXT`    | The full transcript of the video.                        |
+| `created_at` | `TIMESTAMP`| The timestamp when the record was added.                |
 
 ## ⚙️ Installation & Setup
 
@@ -29,85 +54,70 @@ Follow these steps to set up and run the project locally.
 ### Prerequisites
 
 - Python 3.9 or higher
-- Git version control system
-- Google Gemini API key (obtain from [Google AI Studio](https://aistudio.google.com/))
+- Git
+- A Google Gemini API key (obtain from [Google AI Studio](https://aistudio.google.com/))
 
-### Installation Process
+### Installation Steps
 
-#### 1. Clone the Repository
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/Vinchent/youtube-summarizer-streamlit.git
+    cd youtube-summarizer-streamlit
+    ```
 
-```bash
-git clone https://github.com/Vinchent/youtube-summarizer-streamlit.git
-cd youtube-summarizer-streamlit
-```
+2.  **Create and Activate a Virtual Environment**
+    ```bash
+    # Create virtual environment
+    python -m venv venv
 
-#### 2. Environment Setup
+    # Activate on Windows
+    venv\Scripts\activate
 
-Create and activate a virtual environment, then install dependencies:
+    # Activate on macOS/Linux
+    source venv/bin/activate
+    ```
 
-```bash
-# Create virtual environment
-python -m venv venv
+3.  **Install Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+### API Key Configuration
 
-# Install required packages
-pip install -r requirements.txt
-```
+The two operation modes require **different methods** for setting the API key:
 
-#### 3. API Configuration
+**A) For the Streamlit Web App (`app.py`):**
 
-The application uses Streamlit's secrets management for secure API key handling:
+The app uses Streamlit's secrets management.
 
-1. Create a `.streamlit` directory in the project root
-2. Create a `secrets.toml` file within the `.streamlit` directory
-3. Add your API key configuration:
+1.  Create a directory named `.streamlit` in the project root.
+2.  Inside it, create a file named `secrets.toml`.
+3.  Add your Gemini API key to the file like this:
 
-```toml
-# .streamlit/secrets.toml
-GEMINI_API_KEY = "your_api_key_here"
-```
+    ```toml
+    # .streamlit/secrets.toml
+    GEMINI_API_KEY = "your_api_key_here"
+    ```
+
+**B) For the Playlist Script (`populate_from_playlist.py`):**
+
+This script requires the API key to be set as an **environment variable**.
+
+-   **On macOS/Linux:**
+    ```bash
+    export GEMINI_API_KEY="your_api_key_here"
+    ```
+-   **On Windows (Command Prompt):**
+    ```bash
+    set GEMINI_API_KEY="your_api_key_here"
+    ```
+-   **On Windows (PowerShell):**
+    ```powershell
+    $env:GEMINI_API_KEY="your_api_key_here"
+    ```
 
 ## 🚀 Running the Application
 
-Launch the application using the following command:
-
+### 1. To Launch the Web App
 ```bash
 streamlit run app.py
-```
-
-The application will automatically open in your default web browser at the local development server address.
-
-## 📁 Project Structure
-
-```
-.
-├── .streamlit/
-│   └── secrets.toml    # API credentials (excluded from version control)
-├── app.py              # Main Streamlit application interface
-├── summarizer.py       # Core logic for YouTube and Gemini AI integration
-├── database.py         # SQLite database management functions
-├── history.db          # Local database file (excluded from version control)
-├── requirements.txt    # Python dependencies
-├── .gitignore          # Version control exclusions
-└── README.md           # Project documentation
-```
-
-## 🔒 Security Considerations
-
-- API keys are managed through Streamlit's secure secrets system
-- Sensitive files (credentials, database) are excluded from version control
-- Local SQLite database ensures data privacy
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for bug reports and feature requests.
-
-
-## 📞 Support
-
-For questions or support, please open an issue in the GitHub repository.
