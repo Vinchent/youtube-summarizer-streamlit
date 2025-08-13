@@ -9,7 +9,7 @@ import database as db
 import concurrent.futures
 from functools import partial
 
-CONCURRENT_WORKERS = 5
+CONCURRENT_WORKERS = 5  # be careful! youtube may block your IP!!!
 
 def process_single_video(entry: dict, i: int, total_videos: int, summarizer: YouTubeSummarizer) -> str:
     """
